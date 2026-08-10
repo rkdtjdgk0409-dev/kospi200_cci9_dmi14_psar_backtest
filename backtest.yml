@@ -1,0 +1,47 @@
+name: KOSPI200 Backtest
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'kospi200_cci9_dmi14_psar_backtest.py'
+      - 'requirements.txt'
+      - '.github/workflows/backtest.yml'
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run backtest
+        run: |
+          python kospi200_cci9_dmi14_psar_backtest.py --online --fee-side 0.001 --out output_net
+          python kospi200_cci9_dmi14_psar_backtest.py --online --fee-side 0.0 --out output_gross
+
+      - name: Upload net results
+        uses: actions/upload-artifact@v4
+        with:
+          name: kospi200-backtest-net
+          path: output_net/
+          retention-days: 30
+
+      - name: Upload gross results
+        uses: actions/upload-artifact@v4
+        with:
+          name: kospi200-backtest-gross
+          path: output_gross/
+          retention-days: 30
